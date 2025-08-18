@@ -42,7 +42,12 @@ function getEmails($userId, $folder = 'inbox', $limit = EMAILS_PER_PAGE, $offset
     $params[] = $offset;
     
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    // Convert limit and offset to integers to avoid SQL syntax errors
+    $executeParams = $params;
+    $executeParams[count($executeParams) - 2] = (int)$limit;
+    $executeParams[count($executeParams) - 1] = (int)$offset;
+    
+    $stmt->execute($executeParams);
     return $stmt->fetchAll();
 }
 
