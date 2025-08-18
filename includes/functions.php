@@ -4,6 +4,10 @@ require_once 'config.php';
 function getEmails($userId, $folder = 'inbox', $limit = EMAILS_PER_PAGE, $offset = 0) {
     global $pdo;
     
+    // Ensure limit and offset are integers
+    $limit = (int)$limit;
+    $offset = (int)$offset;
+    
     $whereClause = "WHERE (recipient_id = ? OR sender_id = ?)";
     $params = [$userId, $userId];
     
@@ -28,6 +32,7 @@ function getEmails($userId, $folder = 'inbox', $limit = EMAILS_PER_PAGE, $offset
             $whereClause .= " AND is_deleted = 0 AND is_draft = 0 AND is_spam = 0";
     }
     
+    // Build SQL with direct integer values for LIMIT and OFFSET
     $sql = "SELECT e.*, 
                    COALESCE(s.name, s.email) as sender_name,
                    COALESCE(r.name, r.email) as recipient_name
@@ -36,10 +41,7 @@ function getEmails($userId, $folder = 'inbox', $limit = EMAILS_PER_PAGE, $offset
             LEFT JOIN users r ON e.recipient_id = r.id
             $whereClause
             ORDER BY e.created_at DESC
-            LIMIT ? OFFSET ?";
-    
-    $params[] = $limit;
-    $params[] = $offset;
+            LIMIT $limit OFFSET $offset";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
